@@ -26,7 +26,7 @@ const registerUser = async (req, res) => {
         .json({ success: false, message: "User already exists" });
     }
     // Pass Length
-    if (password.length < 8 && !validator.isStrongPassword(password)) {
+    if (password.length < 8) {
       return res.status(400).json({
         success: false,
         message: "Password must be at least 8 characters long",

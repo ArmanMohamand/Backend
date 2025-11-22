@@ -1,4 +1,5 @@
 import orderModel from "../models/ordermodel.js";
+import userModel from "../models/userModel.js";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.stripe_secret_key);
@@ -6,7 +7,7 @@ const stripe = new Stripe(process.env.stripe_secret_key);
 // Place a new order
 
 const placeOrder = async (req, res) => {
-  const furl = "http://localhost:5174";
+  const furl = "https://frontend-pied-one-e1ikegrlmr.vercel.app/";
 
   //   baad me bdlna h frontend ke url se
 
