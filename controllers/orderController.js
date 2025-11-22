@@ -7,10 +7,7 @@ const stripe = new Stripe(process.env.stripe_secret_key);
 // Place a new order
 
 const placeOrder = async (req, res) => {
-  const furl = "https://e-food-beta.vercel.app/";
-  
-
-  //   baad me bdlna h frontend ke url se
+  const furl = "e-food-beta.vercel.app";
 
   try {
     const newOrder = new orderModel({
