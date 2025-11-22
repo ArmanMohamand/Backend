@@ -6,47 +6,103 @@ const stripe = new Stripe(process.env.stripe_secret_key);
 
 // Place a new order
 
+// const placeOrder = async (req, res) => {
+// const furl = "e-food-beta.vercel.app";
+
+//   try {
+//     const newOrder = new orderModel({
+//       userId: req.body.userId,
+//       items: req.body.items,
+//       amount: req.body.amount,
+//       address: req.body.address,
+//     });
+//     await newOrder.save();
+
+//     // Clear user's cart after placing order
+//     await userModel.findByIdAndUpdate(req.body.userId, { cartdata: {} });
+
+//     // res
+//     //   .status(200)
+//     //   .json({ success: true, message: "Order placed successfully" });
+
+//     const line_items = req.body.items.map((item) => ({
+//       price_data: {
+//         currency: "INR",
+//         product_data: {
+//           name: item.name,
+//         },
+//         unit_amount: item.price * 100, // Convert to smallest currency unit
+//       },
+//       quantity: item.quantity,
+//     }));
+//     line_items.push({
+//       price_data: {
+//         currency: "INR",
+//         product_data: {
+//           name: "Delivery Charges",
+//         },
+//         unit_amount: 20 * 100,
+//       },
+//       quantity: 1,
+//     });
+//     const session = await stripe.checkout.sessions.create({
+//       line_items: line_items,
+//       mode: "payment",
+//       success_url: `${furl}/verify?success=true&orderId=${newOrder._id}`,
+//       cancel_url: `${furl}/verify?success=false&orderId=${newOrder._id}`,
+//     });
+
+//     res.status(200).json({ success: true, session_url: session.url });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ success: false, message: "ERROR" });
+//   }
+// };
 const placeOrder = async (req, res) => {
+  // const furl = "https://e-food-beta.vercel.app"; // add https
   const furl = "e-food-beta.vercel.app";
 
   try {
+    const { userId, items, amount, address } = req.body;
+
+    if (!userId || !items || items.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing userId or items" });
+    }
+
     const newOrder = new orderModel({
-      userId: req.body.userId,
-      items: req.body.items,
-      amount: req.body.amount,
-      address: req.body.address,
+      userId,
+      items,
+      amount,
+      address,
     });
     await newOrder.save();
 
-    // Clear user's cart after placing order
-    await userModel.findByIdAndUpdate(req.body.userId, { cartdata: {} });
+    // Clear user's cart
+    await userModel.findByIdAndUpdate(userId, { cart: {} });
 
-    // res
-    //   .status(200)
-    //   .json({ success: true, message: "Order placed successfully" });
-
-    const line_items = req.body.items.map((item) => ({
+    // Stripe line items
+    const line_items = items.map((item) => ({
       price_data: {
         currency: "INR",
-        product_data: {
-          name: item.name,
-        },
-        unit_amount: item.price * 100, // Convert to smallest currency unit
+        product_data: { name: item.name },
+        unit_amount: Number(item.price) * 100,
       },
       quantity: item.quantity,
     }));
+
     line_items.push({
       price_data: {
         currency: "INR",
-        product_data: {
-          name: "Delivery Charges",
-        },
+        product_data: { name: "Delivery Charges" },
         unit_amount: 20 * 100,
       },
       quantity: 1,
     });
+
     const session = await stripe.checkout.sessions.create({
-      line_items: line_items,
+      line_items,
       mode: "payment",
       success_url: `${furl}/verify?success=true&orderId=${newOrder._id}`,
       cancel_url: `${furl}/verify?success=false&orderId=${newOrder._id}`,
@@ -54,8 +110,8 @@ const placeOrder = async (req, res) => {
 
     res.status(200).json({ success: true, session_url: session.url });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ success: false, message: "ERROR" });
+    console.error("Error in placeOrder:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
