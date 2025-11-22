@@ -9,7 +9,7 @@ import cartrouter from "./routes/cartroute.js";
 import orderRouter from "./routes/orderRoute.js";
 import promoRouter from "./routes/promorouter.js";
 // Connection
-connectMongoose("mongodb://127.0.0.1:27017/e-food").then(() => {
+connectMongoose(process.env.mongo_url).then(() => {
   console.log("MongoDb connected!");
 });
 
