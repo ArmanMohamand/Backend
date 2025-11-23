@@ -121,6 +121,7 @@ const loginUser = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   const furl = "https://e-food-beta.vercel.app";
+  // const furl = "http://localhost:5173";
   const { email } = req.body;
   try {
     const user = await userModel.findOne({ email });
