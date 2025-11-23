@@ -2,11 +2,12 @@ import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import validator from "validator";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 
 const createToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET);
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
-
 // Register user
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
@@ -78,4 +79,71 @@ const loginUser = async (req, res) => {
   }
 };
 
-export { loginUser, registerUser };
+export const forgotPassword = async (req, res) => {
+  const furl = "https://e-food-beta.vercel.app";
+  const { email } = req.body;
+  try {
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.json({
+        success: true,
+        message: "If email exists, reset link sent",
+      });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = Date.now() + 3600000;
+    await user.save();
+
+    const resetLink = `${furl}/reset-password/${resetToken}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      to: user.email,
+      subject: "Password Reset",
+      text: `Click here to reset your password: ${resetLink}`,
+    });
+
+    res.json({ success: true, message: "Password reset link sent" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Reset Password
+export const resetPassword = async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+  try {
+    const user = await userModel.findOne({
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired token" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
+
+    res.json({ success: true, message: "Password reset successful" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+export { loginUser, registerUser, resetPassword, forgotPassword };

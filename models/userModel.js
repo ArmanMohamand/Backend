@@ -5,8 +5,10 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     cart: { type: Object, default: {} },
+    resetToken: { type: String },
+    resetTokenExpiry: { type: Date },
   },
-  { minimize: false },
+  { minimize: false }
 );
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);
