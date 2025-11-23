@@ -81,6 +81,7 @@ const stripe = new Stripe(process.env.stripe_secret_key);
 
 const placeOrder = async (req, res) => {
   const furl = "https://e-food-beta.vercel.app";
+
   try {
     const { userId, items, amount, address } = req.body;
 

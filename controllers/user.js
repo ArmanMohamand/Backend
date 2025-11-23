@@ -79,6 +79,46 @@ const loginUser = async (req, res) => {
   }
 };
 
+// const forgotPassword = async (req, res) => {
+//   // const furl = "https://e-food-beta.vercel.app";
+//   // const furl = " http://localhost:5173";
+//   const { email } = req.body;
+//   try {
+//     const user = await userModel.findOne({ email });
+//     if (!user) {
+//       return res.json({
+//         success: true,
+//         message: "If email exists, reset link sent",
+//       });
+//     }
+
+//     const resetToken = crypto.randomBytes(32).toString("hex");
+//     user.resetToken = resetToken;
+//     user.resetTokenExpiry = Date.now() + 3600000;
+//     await user.save();
+
+//     const resetLink = `${furl}/reset-password/${resetToken}`;
+
+//     const transporter = nodemailer.createTransport({
+//       service: "gmail",
+//       auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS,
+//       },
+//     });
+
+//     await transporter.sendMail({
+//       to: user.email,
+//       subject: "Password Reset",
+//       text: `Click here to reset your password: ${resetLink}`,
+//     });
+
+//     res.json({ success: true, message: "Password reset link sent" });
+//   } catch (err) {
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
 const forgotPassword = async (req, res) => {
   const furl = "https://e-food-beta.vercel.app";
   const { email } = req.body;
@@ -106,15 +146,26 @@ const forgotPassword = async (req, res) => {
       },
     });
 
-    await transporter.sendMail({
-      to: user.email,
-      subject: "Password Reset",
-      text: `Click here to reset your password: ${resetLink}`,
-    });
+    try {
+      await transporter.sendMail({
+        to: user.email,
+        subject: "Password Reset",
+        text: `Click here to reset your password: ${resetLink}`,
+      });
+    } catch (emailErr) {
+      console.error(" Email send failed:", emailErr);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send reset email. Please try again later.",
+      });
+    }
 
     res.json({ success: true, message: "Password reset link sent" });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error(" Forgot password error:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Server error. Please try again." });
   }
 };
 
