@@ -79,7 +79,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-export const forgotPassword = async (req, res) => {
+const forgotPassword = async (req, res) => {
   const furl = "https://e-food-beta.vercel.app";
   const { email } = req.body;
   try {
@@ -118,8 +118,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// Reset Password
-export const resetPassword = async (req, res) => {
+const resetPassword = async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
   try {
