@@ -10,6 +10,7 @@ const foodSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+foodSchema.index({ category: 1 });
 
 const foodmodel = mongoose.models.food || mongoose.model("food", foodSchema);
 

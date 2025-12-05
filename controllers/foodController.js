@@ -30,9 +30,29 @@ const addfood = async (req, res) => {
 
 // all food items
 
+// const listfood = async (req, res) => {
+//   try {
+//     const foods = await foodmodel.find({}).lean() ;
+//     res.json({ success: true, data: foods });
+//   } catch (error) {
+//     console.error("List food error:", error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
+
+let cachedFoods = null;
+let lastFetchTime = null;
+
 const listfood = async (req, res) => {
   try {
-    const foods = await foodmodel.find({});
+    if (cachedFoods && Date.now() - lastFetchTime < 60000) {
+      return res.json({ success: true, data: cachedFoods });
+    }
+
+    const foods = await foodmodel.find({}).lean();
+    cachedFoods = foods;
+    lastFetchTime = Date.now();
+
     res.json({ success: true, data: foods });
   } catch (error) {
     console.error("List food error:", error);
